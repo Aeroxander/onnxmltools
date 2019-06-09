@@ -45,6 +45,11 @@ def convert_tensor_float_to_float16(tensor):
             int_list = _npfloat16_to_int(np.float16(tensor.float_data))
             tensor.int32_data[:] = int_list
             tensor.float_data[:] = []
+        if tensor.int64_data:
+            int_list = npfloat16_to_int(np.float16(tensor.int64_data))
+            print(int_list)
+            tensor.int32_data[:] = int_list
+            tensor.int64_data[:] = []
         # convert raw_data (bytes type)
         if tensor.raw_data:
             # convert n.raw_data to float
@@ -136,6 +141,9 @@ def convert_float_to_float16(model):
                 # tensor(float16) except map and seq(map). And save them in value_info_list for further processing
                 for n in itertools.chain(q.input, q.output, q.value_info):
                     if n.type.tensor_type.elem_type == onnx_proto.TensorProto.FLOAT:
+                        n.type.tensor_type.elem_type = onnx_proto.TensorProto.FLOAT16
+                        value_info_list.append(n)
+                    if n.type.tensor_type.elem_type == onnx_proto.TensorProto.INT64:
                         n.type.tensor_type.elem_type = onnx_proto.TensorProto.FLOAT16
                         value_info_list.append(n)
             # if q is node.attribute, process node.attribute.t and node.attribute.tensors (TensorProto)
